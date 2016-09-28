@@ -1,20 +1,16 @@
 require 'parse_resource/parse_user_validator'
+require "uri"
 
 class ParseUser < ParseResource::Base
   fields :username, :password
 
   def self.authenticate(username, password)
     base_uri   = "https://api.parse.com/1/login"
-    app_id     = settings['app_id']
-    master_key = settings['master_key']
-    resource = RestClient::Resource.new(base_uri, app_id, master_key)
-    
     begin
-      resp = resource.get(:params => {:username => username, :password => password})
-      user = model_name.to_s.constantize.new(JSON.parse(resp), false)
-            
+      resp = self.resource.get(:params => {:username => URI::encode(username), :password => URI::encode(password)})
+      user = model_name.to_s.constantize.new(JSON.parse(resp), false)            
       user 
-    rescue 
+    rescue Exception => e
       false
     end
     
